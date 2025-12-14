@@ -1,11 +1,12 @@
 import socket
+from abc import abstractmethod, ABC
 from typing import Any
 
-import TCPUtils
+from .TCPUtils import parse_tcp_request, StatusCodes
 from .HttpConst import HTTP_STATUS_CODES, HTTP_HEADERS
 
 
-class BaseTCPConnection:
+class BaseTCPConnection():
     def __init__(self, host_ip="127.0.0.1", port=8080):
         self.host_ip = host_ip
         self.port = port
@@ -37,7 +38,7 @@ class BaseTCPConnection:
 
 
         # returns a dictionary
-        parsed_tcp_request, status_code = TCPUtils.parse_tcp_request(decoded_request)
+        parsed_tcp_request, status_code = parse_tcp_request(decoded_request)
 
         request_handle_return = self.handle_request(parsed_tcp_request, status_code)
 
@@ -46,12 +47,16 @@ class BaseTCPConnection:
         conn_socket.shutdown(socket.SHUT_RDWR)
         conn_socket.close()
 
+
     # this should return a dict {}, with status line
     def handle_request(self, tcp_request, status_code) -> dict:
         """
         Generates a proper HTTP response dictionary based on parsed tcp_request.
         tcp_request: tuple(parsed_request_dict, StatusCodes)
         """
+
+
+        # Example handle_request implementation
         parsed_request, status = tcp_request, status_code
 
         response_body = ""
@@ -59,7 +64,7 @@ class BaseTCPConnection:
         response_headers = {}
 
         # Handle errors first
-        if status != TCPUtils.StatusCodes.SUCCESS:
+        if status != StatusCodes.SUCCESS:
             # Use the error message from your HTTP_STATUS_CODES mapping
             response_body = parsed_request.get("error", "Error")
             status_line = f"HTTP/1.1 {status.value} {HTTP_STATUS_CODES.get(status, 'Error')}\r\n"
@@ -82,7 +87,25 @@ class BaseTCPConnection:
 
     # convert handle_request dictionary to string
     def _response_to_string(self, response) -> str:
-        pass
+
+        print(response)
+
+        string_response = ""
+
+        for key, value in response.items():
+            if key == "status_line" or key == "body":
+                string_response += f"{value}"
+
+            # handle headers
+            else:
+                for header, header_value in value.items():
+
+                    string_response += f"{header}: {header_value.removesuffix("\r\n")}\r\n"
+
+                string_response += f"\r\n"
+
+        print(string_response)
+        return string_response
 
     """
                         *** TCP CLIENT ***

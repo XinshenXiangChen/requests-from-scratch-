@@ -3,7 +3,7 @@ from abc import abstractmethod, ABC
 from typing import Any
 
 from .TCPUtils import parse_tcp_request, StatusCodes
-from .HttpConst import HTTP_STATUS_CODES, HTTP_HEADERS
+from .HttpConst import HTTP_STATUS_CODES, HTTP_HEADERS, methods
 
 
 class BaseTCPConnection():
@@ -104,15 +104,18 @@ class BaseTCPConnection():
 
                 string_response += f"\r\n"
 
-        print(string_response)
         return string_response
+
 
     """
                         *** TCP CLIENT ***
     """
 
-    def tcp_send(self):
-        pass
+    def tcp_send(self, request_method, headers, body):
+        if request_method not in methods:
+            raise Exception(f"Request method {request_method} is not supported.")
+
+
 
 if __name__ == "__main__":
     connection = BaseTCPConnection("127.0.0.1", 8080)

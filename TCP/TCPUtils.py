@@ -2,8 +2,7 @@ from enum import Enum
 
 from TCP.HttpConst import HTTP_STATUS_CODES, HTTP_HEADERS
 
-methods = {"GET", "POST", "PUT", "PATCH", "DELETE"}
-protocols = {"HTTP": ["0.9", "1.0", "1.1"], "HTTPS": []}
+
 
 class StatusCodes(Enum):
     SUCCESS = 200

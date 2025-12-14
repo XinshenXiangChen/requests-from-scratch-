@@ -1,3 +1,6 @@
+methods = {"GET", "POST", "PUT", "PATCH", "DELETE"}
+protocols = {"HTTP": ["0.9", "1.0", "1.1"], "HTTPS": []}
+
 HTTP_STATUS_CODES = {
     # 1xx — Informational
     100: "Continue",

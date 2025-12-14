@@ -117,6 +117,10 @@ class BaseTCPConnection():
 
 
 
+    def _request_to_string(self, headers, body):
+        pass
+
+
 if __name__ == "__main__":
     connection = BaseTCPConnection("127.0.0.1", 8080)
     connection.tcp_listen()

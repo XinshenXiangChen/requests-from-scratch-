@@ -5,7 +5,10 @@ def listen(host_ip="127.0.0.1", host_port=8080):
     connection = ExampleTCPConnection(host_ip, host_port)
     connection.tcp_listen()
 
-def post(url):
+def get(url):
+    pass
+
+def post(url, body="", headers=None):
     pass
 
 def put(url):
@@ -17,4 +20,4 @@ def delete(url):
 
 
 if __name__ == '__main__':
-    listen()
+    get()

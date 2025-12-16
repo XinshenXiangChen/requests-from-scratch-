@@ -4,12 +4,9 @@ from typing import Any
 
 from .TCPUtils import parse_tcp_request, StatusCodes
 from .HttpConst import HTTP_STATUS_CODES, HTTP_HEADERS, methods
-
+from urllib.parse import urlparse
 
 class BaseTCPConnection():
-    def __init__(self, host_ip="127.0.0.1", port=8080):
-        self.host_ip = host_ip
-        self.port = port
 
     """
                         *** TCP SERVER ***
@@ -17,7 +14,7 @@ class BaseTCPConnection():
 
     # Listens for connections
     # TODO: Connection pooling integration
-    def tcp_listen(self):
+    def tcp_listen(self, host_ip="127.0.0.1", port=8080):
         # AF_INET is for ipv4, and SOCK_SREAM is for TCP connection
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -25,7 +22,7 @@ class BaseTCPConnection():
         # second param is the thing to configure, in this case SO_REUSEADDR set to 1 (enabled) means that once the tcp connection closes the address can be reused
         # usually when a tcp
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind((self.host_ip, self.port))
+        server_socket.bind((host_ip, port))
 
         server_socket.listen(1)
 
@@ -111,16 +108,64 @@ class BaseTCPConnection():
                         *** TCP CLIENT ***
     """
 
-    def tcp_send(self, request_method, headers, body):
+    def tcp_send(self, request_method, headers, body, url):
         if request_method not in methods:
             raise Exception(f"Request method {request_method} is not supported.")
 
+        # Ensure URL has scheme
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url
+
+        parsed = urlparse(url)
+        host = parsed.netloc.split(":")[0]  # remove port if present example: localhost:80213879 -> localhost
+        port = 80  # default HTTP port
 
 
-    def _request_to_string(self, headers, body):
-        pass
+        # Optional: handle non-standard port in URL
+        if ":" in parsed.netloc:
+            port = int(parsed.netloc.split(":")[1])
 
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((host, port))
+
+
+        sock.send(bytes(self._request_to_string(request_method, headers, body, url), encoding="utf-8"))
+        print(sock.recv(4096*16))
+        sock.close()
+
+
+    def _request_to_string(self, request_method, headers, body, url: str):
+
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url
+
+        parsed = urlparse(url)
+
+        host = parsed.netloc
+
+        path = parsed.path or "/"  # default to "/" if empty
+        if parsed.query:
+            path += "?" + parsed.query
+
+        if "Host" not in headers:
+            headers["Host"] = host
+
+
+
+        string_request = ""
+
+        string_request += f"{request_method} {path} HTTP/1.1\r\n\r\n"
+
+        for header, header_value in headers.items():
+            string_request += f"{header}: {header_value.removesuffix("\r\n")}\r\n"
+
+        string_request += f"\r\n"
+
+        string_request += f"{body}"
+
+        print(string_request)
+        return string_request
 
 if __name__ == "__main__":
-    connection = BaseTCPConnection("127.0.0.1", 8080)
-    connection.tcp_listen()
+    connection = BaseTCPConnection()
+    connection.tcp_send("GET", {}, "", "http://127.0.0.1:8080/")

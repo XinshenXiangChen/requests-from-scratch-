@@ -143,7 +143,7 @@ class BaseTCPConnection():
 
         host = parsed.netloc
 
-        path = parsed.path or "/"  # default to "/" if empty
+        path = parsed.path or "/"
         if parsed.query:
             path += "?" + parsed.query
 
